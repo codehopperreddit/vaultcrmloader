@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veeva Vault Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="header-content">
+                <h1>Veeva Vault Manager</h1>
+                <button id="helpBtn" class="help-button"><i class="fas fa-question-circle"></i> Help</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Connection Section -->
+            <section class="card" id="connectionSection">
+                <h2>Veeva Vault Connection</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="apiUrl">API URL:</label>
+                        <input type="text" id="apiUrl" placeholder="https://yourcompany.veevavault.com">
+                        <div class="tooltip">The Veeva Vault API URL (e.g., https://yourcompany.veevavault.com)</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="verifySSL" checked>
+                            <span class="checkmark"></span>
+                            Verify SSL Certificate
+                        </label>
+                        <div class="tooltip">Disable this if having SSL certificate verification issues</div>
+                    </div>
+                    <div class="form-group button-group">
+                        <button id="testConnectionBtn" class="button secondary-button">Test Connection</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Operation Section -->
+            <section class="card" id="operationSection">
+                <h2>Operation</h2>
+                <div class="operation-options">
+                    <div class="radio-group">
+                        <label class="radio-container">
+                            <input type="radio" name="operation" id="pullOperation" value="pull" checked>
+                            <span class="radio-custom"></span>
+                            Pull data from Veeva Vault
+                        </label>
+                        <div class="tooltip">Download data from Veeva Vault to CSV/Excel file</div>
+                    </div>
+                    <div class="radio-group">
+                        <label class="radio-container">
+                            <input type="radio" name="operation" id="pushOperation" value="push">
+                            <span class="radio-custom"></span>
+                            Push data to Veeva Vault
+                        </label>
+                        <div class="tooltip">Upload data from local CSV/Excel to Veeva Vault</div>
+                    </div>
+                    <div class="radio-group">
+                        <label class="radio-container">
+                            <input type="radio" name="operation" id="metadataOperation" value="metadata">
+                            <span class="radio-custom"></span>
+                            Export All Objects & Fields
+                        </label>
+                        <div class="tooltip">Export a list of all objects and their fields in CSV format</div>
+                    </div>
+                </div>
+
+                <!-- CRUD Operations (for push) -->
+                <div id="crudOperations" class="operation-section hidden">
+                    <h3>CRUD Operation:</h3>
+                    <div class="radio-buttons">
+                        <label class="radio-container">
+                            <input type="radio" name="crudOperation" value="insert" checked>
+                            <span class="radio-custom"></span>
+                            Insert
+                        </label>
+                        <div class="tooltip">Add new records to Veeva Vault</div>
+                        
+                        <label class="radio-container">
+                            <input type="radio" name="crudOperation" value="update">
+                            <span class="radio-custom"></span>
+                            Update
+                        </label>
+                        <div class="tooltip">Update existing records in Veeva Vault</div>
+                        
+                        <label class="radio-container">
+                            <input type="radio" name="crudOperation" value="delete">
+                            <span class="radio-custom"></span>
+                            Delete
+                        </label>
+                        <div class="tooltip">Remove records from Veeva Vault</div>
+                        
+                        <label class="radio-container">
+                            <input type="radio" name="crudOperation" value="merge">
+                            <span class="radio-custom"></span>
+                            Merge
+                        </label>
+                        <div class="tooltip">Merge data with existing records (no mapping required)</div>
+                    </div>
+                </div>
+
+                <!-- Batch Size (for push) -->
+                <div id="batchSizeSection" class="operation-section hidden">
+                    <h3>Batch Size:</h3>
+                    <div class="batch-size-container">
+                        <input type="number" id="batchSize" value="500" min="1" max="2000">
+                        <span id="batchSizeInfo">(Default: upto 2000 for Insert/Update, max 10 for Merge)</span>
+                    </div>
+                    <div class="tooltip">Number of records to process in each batch. Max 2000 for insert/update, max 10 for merge.</div>
+                </div>
+
+                <!-- Email Notification -->
+                <div class="email-notification">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="emailNotification">
+                        <span class="checkmark"></span>
+                        Send email notification
+                    </label>
+                    <div class="tooltip">Send an email report after operation completes</div>
+                    
+                    <button id="emailSettingsBtn" class="button secondary-button">Email Settings</button>
+                </div>
+            </section>
+
+            <!-- Data Configuration Section -->
+            <section class="card" id="dataConfigSection">
+                <h2>Data Configuration</h2>
+                
+                <!-- Pull Operation Config -->
+                <div id="pullConfig" class="data-config-section">
+                    <div class="form-group">
+                        <label for="pullObjectCombo">Veeva Object:</label>
+                        <div class="combo-container">
+                            <input list="vaultObjects" id="pullObjectCombo" class="combobox">
+                            <datalist id="vaultObjects"></datalist>
+                        </div>
+                        <button id="fetchObjectsBtn" class="button secondary-button">Fetch Objects</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="outputFile">Output File Name:</label>
+                        <input type="text" id="outputFile" placeholder="data.csv">
+                    </div>
+                    <div class="form-group">
+                        <label>Output Format:</label>
+                        <div class="radio-buttons inline">
+                            <label class="radio-container">
+                                <input type="radio" name="outputFormat" value="csv" checked>
+                                <span class="radio-custom"></span>
+                                CSV
+                            </label>
+                            <label class="radio-container">
+                                <input type="radio" name="outputFormat" value="excel">
+                                <span class="radio-custom"></span>
+                                Excel
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Push Operation Config -->
+                <div id="pushConfig" class="data-config-section hidden">
+                    <div class="form-group">
+                        <label for="inputFile">Input File:</label>
+                        <div class="file-input-container">
+                            <input type="file" id="inputFile" accept=".csv,.xlsx,.xls">
+                            <div class="file-name" id="fileName">No file selected</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="pushObjectCombo">Target Object:</label>
+                        <div class="combo-container">
+                            <input list="vaultObjects" id="pushObjectCombo" class="combobox">
+                        </div>
+                        <button id="fetchObjectsBtn2" class="button secondary-button">Fetch Objects</button>
+                    </div>
+                </div>
+                
+                <!-- Metadata Export Config -->
+                <div id="metadataConfig" class="data-config-section hidden">
+                    <div class="form-group">
+                        <label for="metadataFile">Export File Name:</label>
+                        <input type="text" id="metadataFile" placeholder="vault_objects_fields.csv">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Column Mapping Section (for push) -->
+            <section class="card" id="mappingSection" style="display: none;">
+                <h2>Column Mapping</h2>
+                <div class="mapping-buttons">
+                    <button id="autoMapBtn" class="button secondary-button">Auto-Map Columns</button>
+                    <button id="clearMapBtn" class="button secondary-button">Clear Mappings</button>
+                </div>
+                <div class="mapping-container">
+                    <table id="mappingTable">
+                        <thead>
+                            <tr>
+                                <th>File Column</th>
+                                <th>Vault Field</th>
+                                <th>Preview Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Execution Section -->
+            <section class="card" id="executionSection">
+                <div class="execution-controls">
+                    <div class="progress-container">
+                        <div id="progressBar" class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <div id="statusLabel" class="status-label">Ready</div>
+                    </div>
+                    <div class="button-group">
+                        <button id="saveConfigBtn" class="button secondary-button">Save Configuration</button>
+                        <button id="executeBtn" class="button primary-button">Execute</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Log Section -->
+            <section class="card" id="logSection">
+                <h2>Logs</h2>
+                <div id="logContainer" class="log-container"></div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <span>&copy; 2025 Veeva Vault Manager | sc22950</span>
+                <span>Version 1.1.5 (Web)</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Veeva Vault Manager Help</h2>
+            <div class="help-content">
+                <p>This application provides a web interface for pulling data from and pushing data to Veeva Vault using CSV or Excel files.</p>
+                
+                <h3>Connection Configuration:</h3>
+                <ul>
+                    <li><strong>API URL:</strong> The Veeva Vault API URL (e.g., https://yourcompany.veevavault.com)</li>
+                    <li><strong>Username:</strong> Your Veeva Vault username</li>
+                    <li><strong>Password:</strong> Your Veeva Vault password</li>
+                    <li><strong>Verify SSL Certificate:</strong> Enable/disable SSL certificate verification (disable if having connection issues)</li>
+                </ul>
+                
+                <h3>Troubleshooting Connection Issues:</h3>
+                <ul>
+                    <li>If you see SSL certificate errors, try unchecking the "Verify SSL Certificate" option</li>
+                    <li>For timeout errors, the application will automatically retry with smaller batch sizes</li>
+                    <li>If connection problems persist, check your network configuration or proxy settings</li>
+                </ul>
+                
+                <h3>Operations:</h3>
+                <ul>
+                    <li><strong>Pull:</strong> Download data from Veeva Vault to a CSV or Excel file</li>
+                    <li><strong>Push:</strong> Upload data from a CSV or Excel file to Veeva Vault objects
+                        <ul>
+                            <li><strong>Insert:</strong> Add new records</li>
+                            <li><strong>Update:</strong> Update existing records</li>
+                            <li><strong>Delete:</strong> Remove records</li>
+                            <li><strong>Merge:</strong> Update or insert records (upsert)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Export All Objects & Fields:</strong> Generate a CSV file listing all objects and their fields in Veeva Vault</li>
+                </ul>
+                
+                <p>For push operations, you need to map your file columns to Vault fields. Auto-mapping will match columns by name where possible.</p>
+                
+                <h3>Web Version Limitations:</h3>
+                <ul>
+                    <li>Configuration is stored in your browser's local storage, not in a configuration file</li>
+                    <li>Email notifications require configuration of your email server settings</li>
+                    <li>Files are downloaded to your browser's default download location</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Settings Modal -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Email Settings</h2>
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="smtpServer">SMTP Server:</label>
+                    <input type="text" id="smtpServer" value="10.121.0.205">
+                </div>
+                <div class="form-group">
+                    <label for="senderEmail">Sender Email:</label>
+                    <input type="email" id="senderEmail">
+                </div>
+                <div class="form-group">
+                    <label for="recipientEmails">Recipient Emails:</label>
+                    <input type="text" id="recipientEmails">
+                    <small>(Comma separated)</small>
+                </div>
+                <div class="form-group">
+                    <label for="ccEmails">CC Emails:</label>
+                    <input type="text" id="ccEmails">
+                    <small>(Comma separated)</small>
+                </div>
+                <div class="button-group">
+                    <button id="testEmailBtn" class="button secondary-button">Test Connection</button>
+                    <button id="saveEmailBtn" class="button primary-button">Save</button>
+                    <button id="cancelEmailBtn" class="button">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
