@@ -4,340 +4,1206 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Veeva Vault Manager</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            /* Color palette */
+            --primary: #1976d2;
+            --primary-light: #4791db;
+            --primary-dark: #115293;
+            --secondary: #f50057;
+            --secondary-light: #ff4081;
+            --secondary-dark: #c51162;
+            --surface: #ffffff;
+            --background: #f5f5f5;
+            --error: #f44336;
+            --warning: #ff9800;
+            --info: #2196f3;
+            --success: #4caf50;
+            
+            /* Text colors */
+            --text-primary: rgba(0, 0, 0, 0.87);
+            --text-secondary: rgba(0, 0, 0, 0.6);
+            --text-disabled: rgba(0, 0, 0, 0.38);
+            --text-hint: rgba(0, 0, 0, 0.38);
+            --text-on-primary: #ffffff;
+            --text-on-secondary: #ffffff;
+            
+            /* Elevations (shadows) */
+            --elevation-1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+            --elevation-2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+            --elevation-4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+            --elevation-6: 0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12);
+            
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-s: 8px;
+            --spacing-m: 16px;
+            --spacing-l: 24px;
+            --spacing-xl: 32px;
+            
+            /* Border radius */
+            --border-radius-s: 4px;
+            --border-radius-m: 8px;
+        }
+
+        /* Base styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background-color: var(--background);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Layout */
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-l);
+        }
+
+        header {
+            margin-bottom: var(--spacing-l);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-m) 0;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-l);
+        }
+
+        footer {
+            margin-top: var(--spacing-xl);
+            padding: var(--spacing-l) 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--spacing-s);
+        }
+
+        /* App title */
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-s);
+            color: var(--primary);
+            margin: 0;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--surface);
+            border-radius: var(--border-radius-m);
+            box-shadow: var(--elevation-2);
+            margin-bottom: var(--spacing-l);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: var(--spacing-m) var(--spacing-l);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+            display: flex;
+            align-items: center;
+            background-color: var(--primary);
+            color: var(--text-on-primary);
+        }
+
+        .card-header .card-icon {
+            margin-right: var(--spacing-m);
+            font-size: 20px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .card-content {
+            padding: var(--spacing-l);
+        }
+
+        .card-section {
+            margin-bottom: var(--spacing-l);
+            padding-bottom: var(--spacing-l);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        }
+
+        .card-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .card-section-title {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: var(--spacing-m);
+            color: var(--text-primary);
+        }
+
+        .card-section-title i {
+            margin-right: var(--spacing-s);
+            color: var(--primary);
+        }
+
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--spacing-l);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-l);
+        }
+
+        label {
+            display: block;
+            margin-bottom: var(--spacing-s);
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        label i {
+            margin-right: var(--spacing-xs);
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="number"],
+        select,
+        .combobox {
+            width: 100%;
+            padding: var(--spacing-m);
+            border: 1px solid rgba(0, 0, 0, 0.23);
+            border-radius: var(--border-radius-s);
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: var(--surface);
+            color: var(--text-primary);
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        .combobox:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+
+        input::placeholder {
+            color: var(--text-hint);
+        }
+
+        /* Buttons */
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-s) var(--spacing-l);
+            border: none;
+            border-radius: var(--border-radius-s);
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            min-height: 36px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button i {
+            margin-right: var(--spacing-s);
+        }
+
+        .primary-button {
+            background-color: var(--primary);
+            color: var(--text-on-primary);
+            box-shadow: var(--elevation-1);
+        }
+
+        .primary-button:hover {
+            background-color: var(--primary-dark);
+            box-shadow: var(--elevation-2);
+        }
+
+        .secondary-button {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid rgba(25, 118, 210, 0.5);
+        }
+
+        .secondary-button:hover {
+            background-color: rgba(25, 118, 210, 0.08);
+            border-color: var(--primary);
+        }
+
+        .button-group {
+            display: flex;
+            gap: var(--spacing-m);
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        /* Checkbox and Radio */
+        .checkbox-container, 
+        .radio-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-left: 34px;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: var(--spacing-s);
+            min-height: 24px;
+        }
+
+        .checkbox-container input, 
+        .radio-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark, 
+        .radio-custom {
+            position: absolute;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: var(--surface);
+            border: 2px solid rgba(0, 0, 0, 0.54);
+            transition: all 0.3s;
+        }
+
+        .radio-custom {
+            border-radius: 50%;
+        }
+
+        .checkmark {
+            border-radius: 2px;
+        }
+
+        .checkbox-container:hover .checkmark,
+        .radio-container:hover .radio-custom {
+            border-color: var(--primary);
+        }
+
+        .checkbox-container input:checked ~ .checkmark,
+        .radio-container input:checked ~ .radio-custom {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .checkmark:after, 
+        .radio-custom:after {
+            content: "";
+            position: absolute;
+            display: none;
+            transition: all 0.3s;
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after,
+        .radio-container input:checked ~ .radio-custom:after {
+            display: block;
+        }
+
+        .checkbox-container .checkmark:after {
+            left: 6px;
+            top: 2px;
+            width: 4px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .radio-container .radio-custom:after {
+            top: 4px;
+            left: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        /* Radio button groups */
+        .radio-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-l);
+            margin-bottom: var(--spacing-m);
+        }
+
+        .radio-buttons.inline {
+            gap: var(--spacing-m);
+        }
+
+        /* Tooltip */
+        .tooltip-trigger {
+            position: relative;
+        }
+
+        .tooltip {
+            visibility: hidden;
+            position: absolute;
+            background-color: #424242;
+            color: white;
+            text-align: center;
+            padding: var(--spacing-s) var(--spacing-m);
+            border-radius: var(--border-radius-s);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            font-size: 12px;
+            width: 250px;
+            box-shadow: var(--elevation-4);
+            pointer-events: none;
+            transform: translateY(10px);
+            bottom: calc(100% + 10px);
+            left: 0;
+        }
+
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 15px;
+            border-width: 6px;
+            border-style: solid;
+            border-color: #424242 transparent transparent transparent;
+        }
+
+        .tooltip-trigger:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Operation Section */
+        .operation-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-l);
+            margin-bottom: var(--spacing-l);
+        }
+
+        .operation-group {
+            position: relative;
+        }
+
+        .operation-section {
+            margin-top: var(--spacing-l);
+            padding-top: var(--spacing-l);
+            border-top: 1px solid rgba(0, 0, 0, 0.12);
+        }
+
+        /* Combo container and File input */
+        .combo-container {
+            display: flex;
+            gap: var(--spacing-s);
+        }
+
+        .combo-container .combobox {
+            flex-grow: 1;
+        }
+
+        .file-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-s);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--spacing-s) var(--spacing-m);
+            background-color: var(--surface);
+            color: var(--primary);
+            border: 1px solid rgba(25, 118, 210, 0.5);
+            border-radius: var(--border-radius-s);
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-bottom: var(--spacing-s);
+        }
+
+        .file-input-label:hover {
+            background-color: rgba(25, 118, 210, 0.08);
+            border-color: var(--primary);
+        }
+
+        .file-input-label i {
+            margin-right: var(--spacing-s);
+        }
+
+        .file-name {
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+            padding: var(--spacing-s) var(--spacing-m);
+            background-color: rgba(0, 0, 0, 0.04);
+            border-radius: var(--border-radius-s);
+        }
+
+        .file-name i {
+            margin-right: var(--spacing-s);
+            color: var(--primary);
+        }
+
+        /* Mapping Table */
+        .mapping-container {
+            margin-top: var(--spacing-m);
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: var(--border-radius-s);
+            background-color: var(--surface);
+        }
+
+        .mapping-buttons {
+            display: flex;
+            gap: var(--spacing-m);
+            margin-bottom: var(--spacing-m);
+        }
+
+        #mappingTable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #mappingTable th, 
+        #mappingTable td {
+            text-align: left;
+            padding: var(--spacing-m);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        }
+
+        #mappingTable th {
+            background-color: rgba(25, 118, 210, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        #mappingTable tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+
+        #mappingTable select {
+            width: 100%;
+            padding: var(--spacing-s);
+        }
+
+        /* Progress Bar */
+        .execution-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-l);
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-l);
+            flex: 1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: rgba(0, 0, 0, 0.12);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .status-label {
+            min-width: 120px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Log Container */
+        .log-container {
+            height: 300px;
+            overflow-y: auto;
+            background-color: #fafafa;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: var(--border-radius-s);
+            padding: var(--spacing-m);
+            font-family: "Roboto Mono", monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .log-info {
+            color: var(--info);
+        }
+
+        .log-success {
+            color: var(--success);
+        }
+
+        .log-warning {
+            color: var(--warning);
+        }
+
+        .log-error {
+            color: var(--error);
+        }
+
+        /* Email notification */
+        .email-notification {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-m);
+            margin-top: var(--spacing-l);
+            padding-top: var(--spacing-l);
+            border-top: 1px solid rgba(0, 0, 0, 0.12);
+        }
+
+        /* Batch size */
+        .batch-size-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-m);
+            position: relative;
+        }
+
+        #batchSize {
+            width: 100px;
+        }
+
+        /* Loading Indicator */
+        #loadingIndicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(25, 118, 210, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .processing-box {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: var(--elevation-6);
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Help button */
+        .help-button {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-s);
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .help-button:hover {
+            color: var(--primary-dark);
+        }
+
+        .help-button i {
+            font-size: 20px;
+        }
+
+        /* Media queries for responsiveness */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .combo-container {
+                flex-direction: column;
+            }
+            
+            .execution-controls {
+                flex-direction: column;
+            }
+            
+            .button-group {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .operation-options {
+                flex-direction: column;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-m);
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
         <header>
             <div class="header-content">
-                <h1>Veeva Vault Manager</h1>
+                <h1 class="app-title"><i class="fas fa-database"></i> Veeva Vault Manager</h1>
                 <button id="helpBtn" class="help-button"><i class="fas fa-question-circle"></i> Help</button>
             </div>
         </header>
 
         <main>
-            <!-- Connection Section -->
-            <section class="card" id="connectionSection">
-                <h2>Veeva Vault Connection</h2>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="apiUrl">API URL:</label>
-                        <input type="text" id="apiUrl" placeholder="https://yourcompany.veevavault.com">
-                        <div class="tooltip">The Veeva Vault API URL (e.g., https://yourcompany.veevavault.com)</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="username">Username:</label>
-                        <input type="text" id="username">
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password:</label>
-                        <input type="password" id="password">
-                    </div>
-                    <div class="form-group">
-                        <label class="checkbox-container">
-                            <input type="checkbox" id="verifySSL" checked>
-                            <span class="checkmark"></span>
-                            Verify SSL Certificate
-                        </label>
-                        <div class="tooltip">Disable this if having SSL certificate verification issues</div>
-                    </div>
-                    <div class="form-group button-group">
-                        <button id="testConnectionBtn" class="button secondary-button">Test Connection</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Operation Section -->
-            <section class="card" id="operationSection">
-                <h2>Operation</h2>
-                <div class="operation-options">
-                    <div class="radio-group">
-                        <label class="radio-container">
-                            <input type="radio" name="operation" id="pullOperation" value="pull" checked>
-                            <span class="radio-custom"></span>
-                            Pull data from Veeva Vault
-                        </label>
-                        <div class="tooltip">Download data from Veeva Vault to CSV/Excel file</div>
-                    </div>
-                    <div class="radio-group">
-                        <label class="radio-container">
-                            <input type="radio" name="operation" id="pushOperation" value="push">
-                            <span class="radio-custom"></span>
-                            Push data to Veeva Vault
-                        </label>
-                        <div class="tooltip">Upload data from local CSV/Excel to Veeva Vault</div>
-                    </div>
-                    <div class="radio-group">
-                        <label class="radio-container">
-                            <input type="radio" name="operation" id="metadataOperation" value="metadata">
-                            <span class="radio-custom"></span>
-                            Export All Objects & Fields
-                        </label>
-                        <div class="tooltip">Export a list of all objects and their fields in CSV format</div>
-                    </div>
-                </div>
-
-                <!-- CRUD Operations (for push) -->
-                <div id="crudOperations" class="operation-section hidden">
-                    <h3>CRUD Operation:</h3>
-                    <div class="radio-buttons">
-                        <label class="radio-container">
-                            <input type="radio" name="crudOperation" value="insert" checked>
-                            <span class="radio-custom"></span>
-                            Insert
-                        </label>
-                        <div class="tooltip">Add new records to Veeva Vault</div>
-                        
-                        <label class="radio-container">
-                            <input type="radio" name="crudOperation" value="update">
-                            <span class="radio-custom"></span>
-                            Update
-                        </label>
-                        <div class="tooltip">Update existing records in Veeva Vault</div>
-                        
-                        <label class="radio-container">
-                            <input type="radio" name="crudOperation" value="delete">
-                            <span class="radio-custom"></span>
-                            Delete
-                        </label>
-                        <div class="tooltip">Remove records from Veeva Vault</div>
-                        
-                        <label class="radio-container">
-                            <input type="radio" name="crudOperation" value="merge">
-                            <span class="radio-custom"></span>
-                            Merge
-                        </label>
-                        <div class="tooltip">Merge data with existing records (no mapping required)</div>
-                    </div>
-                </div>
-
-                <!-- Batch Size (for push) -->
-                <div id="batchSizeSection" class="operation-section hidden">
-                    <h3>Batch Size:</h3>
-                    <div class="batch-size-container">
-                        <input type="number" id="batchSize" value="500" min="1" max="2000">
-                        <span id="batchSizeInfo">(Default: upto 2000 for Insert/Update, max 10 for Merge)</span>
-                    </div>
-                    <div class="tooltip">Number of records to process in each batch. Max 2000 for insert/update, max 10 for merge.</div>
-                </div>
-
-                <!-- Email Notification -->
-                <div class="email-notification">
-                    <label class="checkbox-container">
-                        <input type="checkbox" id="emailNotification">
-                        <span class="checkmark"></span>
-                        Send email notification
-                    </label>
-                    <div class="tooltip">Send an email report after operation completes</div>
-                    
-                    <button id="emailSettingsBtn" class="button secondary-button">Email Settings</button>
-                </div>
-            </section>
-
-            <!-- Data Configuration Section -->
-            <section class="card" id="dataConfigSection">
-                <h2>Data Configuration</h2>
-                
-                <!-- Pull Operation Config -->
-                <div id="pullConfig" class="data-config-section">
-                    <div class="form-group">
-                        <label for="pullObjectCombo">Veeva Object:</label>
-                        <div class="combo-container">
-                            <input list="vaultObjects" id="pullObjectCombo" class="combobox">
-                            <datalist id="vaultObjects"></datalist>
-                        </div>
-                        <button id="fetchObjectsBtn" class="button secondary-button">Fetch Objects</button>
-                    </div>
-                    <div class="form-group">
-                        <label for="outputFile">Output File Name:</label>
-                        <input type="text" id="outputFile" placeholder="data.csv">
-                    </div>
-                    <div class="form-group">
-                        <label>Output Format:</label>
-                        <div class="radio-buttons inline">
-                            <label class="radio-container">
-                                <input type="radio" name="outputFormat" value="csv" checked>
-                                <span class="radio-custom"></span>
-                                CSV
-                            </label>
-                            <label class="radio-container">
-                                <input type="radio" name="outputFormat" value="excel">
-                                <span class="radio-custom"></span>
-                                Excel
-                            </label>
-                        </div>
-                    </div>
+            <!-- Main Container Card -->
+            <div class="card">
+                <!-- Card Header -->
+                <div class="card-header">
+                    <i class="fas fa-cogs card-icon"></i>
+                    <h2>Vault Manager Console</h2>
                 </div>
                 
-                <!-- Push Operation Config -->
-                <div id="pushConfig" class="data-config-section hidden">
-                    <div class="form-group">
-                        <label for="inputFile">Input File:</label>
-                        <div class="file-input-container">
-                            <input type="file" id="inputFile" accept=".csv,.xlsx,.xls">
-                            <div class="file-name" id="fileName">No file selected</div>
+                <!-- Card Content -->
+                <div class="card-content">
+                    <!-- Connection Section -->
+                    <div class="card-section">
+                        <h3 class="card-section-title"><i class="fas fa-link"></i> Veeva Vault Connection</h3>
+                        <div class="form-grid">
+                            <div class="form-group tooltip-trigger">
+                                <label for="apiUrl"><i class="fas fa-globe"></i> API URL</label>
+                                <input type="text" id="apiUrl" placeholder="https://yourcompany.veevavault.com">
+                                <div class="tooltip">The Veeva Vault API URL (e.g., https://yourcompany.veevavault.com)</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="username"><i class="fas fa-user"></i> Username</label>
+                                <input type="text" id="username">
+                            </div>
+                            <div class="form-group">
+                                <label for="password"><i class="fas fa-lock"></i> Password</label>
+                                <input type="password" id="password">
+                            </div>
+                            <div class="form-group tooltip-trigger">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="verifySSL" checked>
+                                    <span class="checkmark"></span>
+                                    Verify SSL Certificate
+                                </label>
+                                <div class="tooltip">Disable this if having SSL certificate verification issues</div>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button id="testConnectionBtn" class="button secondary-button">
+                                <i class="fas fa-vial"></i> Test Connection
+                            </button>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="pushObjectCombo">Target Object:</label>
-                        <div class="combo-container">
-                            <input list="vaultObjects" id="pushObjectCombo" class="combobox">
+
+                    <!-- Operation Selection Section -->
+                    <div class="card-section">
+                        <h3 class="card-section-title"><i class="fas fa-tasks"></i> Operation</h3>
+                        <div class="operation-options">
+                            <div class="operation-group tooltip-trigger">
+                                <label class="radio-container">
+                                    <input type="radio" name="operation" id="pullOperation" value="pull" checked>
+                                    <span class="radio-custom"></span>
+                                    <i class="fas fa-download"></i> Pull data from Veeva Vault
+                                </label>
+                                <div class="tooltip">Download data from Veeva Vault to CSV/Excel file</div>
+                            </div>
+                            <div class="operation-group tooltip-trigger">
+                                <label class="radio-container">
+                                    <input type="radio" name="operation" id="pushOperation" value="push">
+                                    <span class="radio-custom"></span>
+                                    <i class="fas fa-upload"></i> Push data to Veeva Vault
+                                </label>
+                                <div class="tooltip">Upload data from local CSV/Excel to Veeva Vault</div>
+                            </div>
+                            <div class="operation-group tooltip-trigger">
+                                <label class="radio-container">
+                                    <input type="radio" name="operation" id="metadataOperation" value="metadata">
+                                    <span class="radio-custom"></span>
+                                    <i class="fas fa-sitemap"></i> Export All Objects & Fields
+                                </label>
+                                <div class="tooltip">Export a list of all objects and their fields in CSV format</div>
+                            </div>
                         </div>
-                        <button id="fetchObjectsBtn2" class="button secondary-button">Fetch Objects</button>
-                    </div>
-                </div>
-                
-                <!-- Metadata Export Config -->
-                <div id="metadataConfig" class="data-config-section hidden">
-                    <div class="form-group">
-                        <label for="metadataFile">Export File Name:</label>
-                        <input type="text" id="metadataFile" placeholder="vault_objects_fields.csv">
-                    </div>
-                </div>
-            </section>
 
-            <!-- Column Mapping Section (for push) -->
-            <section class="card" id="mappingSection" style="display: none;">
-                <h2>Column Mapping</h2>
-                <div class="mapping-buttons">
-                    <button id="autoMapBtn" class="button secondary-button">Auto-Map Columns</button>
-                    <button id="clearMapBtn" class="button secondary-button">Clear Mappings</button>
-                </div>
-                <div class="mapping-container">
-                    <table id="mappingTable">
-                        <thead>
-                            <tr>
-                                <th>File Column</th>
-                                <th>Vault Field</th>
-                                <th>Preview Data</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Will be populated dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Execution Section -->
-            <section class="card" id="executionSection">
-                <div class="execution-controls">
-                    <div class="progress-container">
-                        <div id="progressBar" class="progress-bar">
-                            <div class="progress-fill"></div>
+                        <!-- CRUD Operations (for push) -->
+                        <div id="crudOperations" class="operation-section hidden">
+                            <h4 class="card-section-title"><i class="fas fa-exchange-alt"></i> CRUD Operation</h4>
+                            <div class="radio-buttons">
+                                <div class="tooltip-trigger">
+                                    <label class="radio-container">
+                                        <input type="radio" name="crudOperation" value="insert" checked>
+                                        <span class="radio-custom"></span>
+                                        <i class="fas fa-plus-circle"></i> Insert
+                                    </label>
+                                    <div class="tooltip">Add new records to Veeva Vault</div>
+                                </div>
+                                <div class="tooltip-trigger">
+                                    <label class="radio-container">
+                                        <input type="radio" name="crudOperation" value="update">
+                                        <span class="radio-custom"></span>
+                                        <i class="fas fa-edit"></i> Update
+                                    </label>
+                                    <div class="tooltip">Update existing records in Veeva Vault</div>
+                                </div>
+                                <div class="tooltip-trigger">
+                                    <label class="radio-container">
+                                        <input type="radio" name="crudOperation" value="delete">
+                                        <span class="radio-custom"></span>
+                                        <i class="fas fa-trash-alt"></i> Delete
+                                    </label>
+                                    <div class="tooltip">Remove records from Veeva Vault</div>
+                                </div>
+                                <div class="tooltip-trigger">
+                                    <label class="radio-container">
+                                        <input type="radio" name="crudOperation" value="merge">
+                                        <span class="radio-custom"></span>
+                                        <i class="fas fa-code-branch"></i> Merge
+                                    </label>
+                                    <div class="tooltip">Merge data with existing records (no mapping required)</div>
+                                </div>
+                            </div>
                         </div>
-                        <div id="statusLabel" class="status-label">Ready</div>
+
+                        <!-- Batch Size (for push) -->
+                        <div id="batchSizeSection" class="operation-section hidden">
+                            <h4 class="card-section-title"><i class="fas fa-layer-group"></i> Batch Size</h4>
+                            <div class="batch-size-container tooltip-trigger">
+                                <input type="number" id="batchSize" value="500" min="1" max="2000">
+                                <span id="batchSizeInfo">(Default: 500 for Insert/Update, max 10 for Merge)</span>
+                                <div class="tooltip">Number of records to process in each batch. Max 2000 for insert/update, max 10 for merge.</div>
+                            </div>
+                        </div>
+
+                        <!-- Email Notification -->
+                        <div class="email-notification">
+                            <div class="tooltip-trigger">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="emailNotification">
+                                    <span class="checkmark"></span>
+                                    <i class="fas fa-envelope"></i> Send email notification
+                                </label>
+                                <div class="tooltip">Send an email report after operation completes</div>
+                            </div>
+                            <button id="emailSettingsBtn" class="button secondary-button">
+                                <i class="fas fa-cog"></i> Email Settings
+                            </button>
+                        </div>
                     </div>
-                    <div class="button-group">
-                        <button id="saveConfigBtn" class="button secondary-button">Save Configuration</button>
-                        <button id="executeBtn" class="button primary-button">Execute</button>
+
+                    <!-- Data Configuration Section -->
+                    <div class="card-section">
+                        <h3 class="card-section-title"><i class="fas fa-file-alt"></i> Data Configuration</h3>
+                        
+                        <!-- Pull Operation Config -->
+                        <div id="pullConfig" class="data-config-section">
+                            <div class="form-group">
+                                <label for="pullObjectCombo"><i class="fas fa-database"></i> Veeva Object</label>
+                                <div class="combo-container">
+                                    <input list="vaultObjects" id="pullObjectCombo" class="combobox" placeholder="Select or type Veeva object">
+                                    <datalist id="vaultObjects">
+                                        <option value="documents"></option>
+                                        <option value="products"></option>
+                                        <option value="users"></option>
+                                    </datalist>
+                                    <button id="fetchObjectsBtn" class="button secondary-button">
+                                        <i class="fas fa-sync-alt"></i> Fetch Objects
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="outputFile"><i class="fas fa-file-export"></i> Output File Name</label>
+                                <input type="text" id="outputFile" placeholder="data.csv">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-file-alt"></i> Output Format</label>
+                                <div class="radio-buttons inline">
+                                    <label class="radio-container">
+                                        <input type="radio" name="outputFormat" value="csv" checked>
+                                        <span class="radio-custom"></span>
+                                        CSV
+                                    </label>
+                                    <label class="radio-container">
+                                        <input type="radio" name="outputFormat" value="excel">
+                                        <span class="radio-custom"></span>
+                                        Excel
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Push Operation Config -->
+                        <div id="pushConfig" class="data-config-section hidden">
+                            <div class="form-group">
+                                <label for="inputFile"><i class="fas fa-file-import"></i> Input File</label>
+                                <div class="file-input-container">
+                                    <label for="inputFile" class="file-input-label">
+                                        <i class="fas fa-cloud-upload-alt"></i> Choose File
+                                    </label>
+                                    <input type="file" id="inputFile" accept=".csv,.xlsx,.xls">
+                                    <div class="file-name" id="fileName">
+                                        <i class="fas fa-file"></i> No file selected
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="pushObjectCombo"><i class="fas fa-database"></i> Target Object</label>
+                                <div class="combo-container">
+                                    <input list="vaultObjects" id="pushObjectCombo" class="combobox" placeholder="Select or type target object">
+                                    <button id="fetchObjectsBtn2" class="button secondary-button">
+                                        <i class="fas fa-sync-alt"></i> Fetch Objects
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Metadata Export Config -->
+                        <div id="metadataConfig" class="data-config-section hidden">
+                            <div class="form-group">
+                                <label for="metadataFile"><i class="fas fa-file-export"></i> Export File Name</label>
+                                <input type="text" id="metadataFile" placeholder="vault_objects_fields.csv" value="vault_objects_fields.csv">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column Mapping Section (for push) -->
+                    <div id="mappingSection" class="card-section hidden">
+                        <h3 class="card-section-title"><i class="fas fa-exchange-alt"></i> Column Mapping</h3>
+                        <div class="mapping-buttons">
+                            <button id="autoMapBtn" class="button secondary-button">
+                                <i class="fas fa-magic"></i> Auto-Map Columns
+                            </button>
+                            <button id="clearMapBtn" class="button secondary-button">
+                                <i class="fas fa-eraser"></i> Clear Mappings
+                            </button>
+                        </div>
+                        <div class="mapping-container">
+                            <table id="mappingTable">
+                                <thead>
+                                    <tr>
+                                        <th>File Column</th>
+                                        <th>Vault Field</th>
+                                        <th>Preview Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>id</td>
+                                        <td>
+                                            <select class="mapping-select" data-column="id">
+                                                <option value="">- Select Field -</option>
+                                                <option value="id" selected>id</option>
+                                                <option value="name">name</option>
+                                                <option value="description">description</option>
+                                            </select>
+                                        </td>
+                                        <td>12345</td>
+                                    </tr>
+                                    <tr>
+                                        <td>name</td>
+                                        <td>
+                                            <select class="mapping-select" data-column="name">
+                                                <option value="">- Select Field -</option>
+                                                <option value="id">id</option>
+                                                <option value="name" selected>name</option>
+                                                <option value="description">description</option>
+                                            </select>
+                                        </td>
+                                        <td>Sample Name</td>
+                                    </tr>
+                                    <tr>
+                                        <td>description</td>
+                                        <td>
+                                            <select class="mapping-select" data-column="description">
+                                                <option value="">- Select Field -</option>
+                                                <option value="id">id</option>
+                                                <option value="name">name</option>
+                                                <option value="description" selected>description</option>
+                                            </select>
+                                        </td>
+                                        <td>Sample Description Text</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Execution Section -->
+                    <div class="card-section">
+                        <div class="execution-controls">
+                            <div class="progress-container">
+                                <div id="progressBar" class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div id="statusLabel" class="status-label">Ready</div>
+                            </div>
+                            <div class="button-group">
+                                <button id="saveConfigBtn" class="button secondary-button">
+                                    <i class="fas fa-save"></i> Save Configuration
+                                </button>
+                                <button id="executeBtn" class="button primary-button">
+                                    <i class="fas fa-play"></i> Execute
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- Log Section -->
-            <section class="card" id="logSection">
-                <h2>Logs</h2>
-                <div id="logContainer" class="log-container"></div>
-            </section>
+            <!-- Log Section Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-list-alt card-icon"></i>
+                    <h2>Logs</h2>
+                </div>
+                <div class="card-content">
+                    <div id="logContainer" class="log-container">
+                        <div class="log-entry log-info">12:34:56 - INFO - Veeva Vault Manager Web initialized</div>
+                        <div class="log-entry log-info">12:35:01 - INFO - Operation changed to: pull</div>
+                        <div class="log-entry log-info">12:35:10 - INFO - Connecting to Vault...</div>
+                        <div class="log-entry log-success">12:35:12 - SUCCESS - Successfully connected to Veeva Vault</div>
+                        <div class="log-entry log-info">12:35:15 - INFO - Loaded 42 Vault objects</div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <footer>
             <div class="footer-content">
-                <span>&copy; 2025 Veeva Vault Manager | sc22950</span>
-                <span>Version 1.1.5 (Web)</span>
+                <span><i class="fas fa-copyright"></i> 2025 Veeva Vault Manager | sc22950</span>
+                <span><i class="fas fa-code-branch"></i> Version 1.1.5 (Web)</span>
             </div>
         </footer>
     </div>
 
-    <!-- Help Modal -->
-    <div id="helpModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Veeva Vault Manager Help</h2>
-            <div class="help-content">
-                <p>This application provides a web interface for pulling data from and pushing data to Veeva Vault using CSV or Excel files.</p>
-                
-                <h3>Connection Configuration:</h3>
-                <ul>
-                    <li><strong>API URL:</strong> The Veeva Vault API URL (e.g., https://yourcompany.veevavault.com)</li>
-                    <li><strong>Username:</strong> Your Veeva Vault username</li>
-                    <li><strong>Password:</strong> Your Veeva Vault password</li>
-                    <li><strong>Verify SSL Certificate:</strong> Enable/disable SSL certificate verification (disable if having connection issues)</li>
-                </ul>
-                
-                <h3>Troubleshooting Connection Issues:</h3>
-                <ul>
-                    <li>If you see SSL certificate errors, try unchecking the "Verify SSL Certificate" option</li>
-                    <li>For timeout errors, the application will automatically retry with smaller batch sizes</li>
-                    <li>If connection problems persist, check your network configuration or proxy settings</li>
-                </ul>
-                
-                <h3>Operations:</h3>
-                <ul>
-                    <li><strong>Pull:</strong> Download data from Veeva Vault to a CSV or Excel file</li>
-                    <li><strong>Push:</strong> Upload data from a CSV or Excel file to Veeva Vault objects
-                        <ul>
-                            <li><strong>Insert:</strong> Add new records</li>
-                            <li><strong>Update:</strong> Update existing records</li>
-                            <li><strong>Delete:</strong> Remove records</li>
-                            <li><strong>Merge:</strong> Update or insert records (upsert)</li>
-                        </ul>
-                    </li>
-                    <li><strong>Export All Objects & Fields:</strong> Generate a CSV file listing all objects and their fields in Veeva Vault</li>
-                </ul>
-                
-                <p>For push operations, you need to map your file columns to Vault fields. Auto-mapping will match columns by name where possible.</p>
-                
-                <h3>Web Version Limitations:</h3>
-                <ul>
-                    <li>Configuration is stored in your browser's local storage, not in a configuration file</li>
-                    <li>Email notifications require configuration of your email server settings</li>
-                    <li>Files are downloaded to your browser's default download location</li>
-                </ul>
-            </div>
+    <!-- Loading Indicator (hidden, shown when needed) -->
+    <div id="loadingIndicator" class="hidden">
+        <div class="processing-box">
+            <div class="loading-spinner"></div>
+            <div style="margin-top: 15px; font-weight: 500;">Processing...</div>
         </div>
     </div>
 
-    <!-- Email Settings Modal -->
-    <div id="emailModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Email Settings</h2>
-            <div class="form-container">
-                <div class="form-group">
-                    <label for="smtpServer">SMTP Server:</label>
-                    <input type="text" id="smtpServer" value="10.121.0.205">
-                </div>
-                <div class="form-group">
-                    <label for="senderEmail">Sender Email:</label>
-                    <input type="email" id="senderEmail">
-                </div>
-                <div class="form-group">
-                    <label for="recipientEmails">Recipient Emails:</label>
-                    <input type="text" id="recipientEmails">
-                    <small>(Comma separated)</small>
-                </div>
-                <div class="form-group">
-                    <label for="ccEmails">CC Emails:</label>
-                    <input type="text" id="ccEmails">
-                    <small>(Comma separated)</small>
-                </div>
-                <div class="button-group">
-                    <button id="testEmailBtn" class="button secondary-button">Test Connection</button>
-                    <button id="saveEmailBtn" class="button primary-button">Save</button>
-                    <button id="cancelEmailBtn" class="button">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="js/utils.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/app.js"></script>
+    <script>
+        // Event listeners and basic functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get elements
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const operationRadios = document.querySelectorAll('input[name="operation"]');
+            const crudOperationRadios = document.querySelectorAll('input[name="crudOperation"]');
+            const executeBtn = document.getElementById('executeBtn');
+            const pullConfig = document.getElementById('pullConfig');
+            const pushConfig = document.getElementById('pushConfig');
+            const metadataConfig = document.getElementById('metadataConfig');
+            const crudOperations = document.getElementById('crudOperations');
+            const batchSizeSection = document.getElementById('batchSizeSection');
+            const mappingSection = document.getElementById('mappingSection');
+            const inputFile = document.getElementById('inputFile');
+            const fileName = document.getElementById('fileName');
+            
+            // Operation radio button change
+            operationRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const operation = this.value;
+                    
+                    // Hide all config sections
+                    pullConfig.classList.add('hidden');
+                    pushConfig.classList.add('hidden');
+                    metadataConfig.classList.add('hidden');
+                    crudOperations.classList.add('hidden');
+                    batchSizeSection.classList.add('hidden');
+                    mappingSection.classList.add('hidden');
+                    
+                    // Show relevant sections based on operation
+                    if (operation === 'pull') {
+                        pullConfig.classList.remove('hidden');
+                    } else if (operation === 'push') {
+                        pushConfig.classList.remove('hidden');
+                        crudOperations.classList.remove('hidden');
+                        batchSizeSection.classList.remove('hidden');
+                        
+                        // Check if we should show mapping section
+                        const crudOperation = document.querySelector('input[name="crudOperation"]:checked').value;
+                        if (crudOperation !== 'merge') {
+                            mappingSection.classList.remove('hidden');
+                        }
+                    } else if (operation === 'metadata') {
+                        metadataConfig.classList.remove('hidden');
+                    }
+                    
+                    // Add log entry
+                    addLogEntry(`Operation changed to: ${operation}`, 'info');
+                });
+            });
+            
+            // CRUD operation radio button change
+            crudOperationRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const operation = this.value;
+                    const batchSizeInput = document.getElementById('batchSize');
+                    const batchSizeInfo = document.getElementById('batchSizeInfo');
+                    
+                    if (operation === 'merge') {
+                        // Max 10 for merge
+                        const currentValue = parseInt(batchSizeInput.value);
+                        batchSizeInput.max = 10;
+                        batchSizeInput.value = Math.min(currentValue, 10);
+                        batchSizeInfo.textContent = '(Max batch size: 10 for Merge)';
+                        
+                        // Hide mapping section for merge
+                        mappingSection.classList.add('hidden');
+                    } else {
+                        // Max 2000 for other operations
+                        batchSizeInput.max = 2000;
+                        if (parseInt(batchSizeInput.value) <= 10) {
+                            batchSizeInput.value = 200; // Reset to default if coming from merge
+                        }
+                        batchSizeInfo.textContent = '(Default: 200 for Insert/Update)';
+                        
+                        // Show mapping section
+                        mappingSection.classList.remove('hidden');
+                    }
+                    
+                    // Add log entry
+                    addLogEntry(`CRUD operation changed to: ${operation}`, 'info');
+                });
+            });
+            
+            // Execute button click
+            executeBtn.addEventListener('click', function() {
+                // Show loading indicator
+                loadingIndicator.classList.remove('hidden');
+                
+                // Add log entries
+                const operation = document.querySelector('input[name="operation"]:checked').value;
+                addLogEntry(`Starting ${operation} operation...`, 'info');
+                
+                // Simulate operation (remove in actual implementation)
+                setTimeout(function() {
+                    // Update progress
+                    document.querySelector('.progress-fill').style.width = '100%';
+                    document.getElementById('statusLabel').textContent = 'Completed';
+                    
+                    // Add success log
+                    addLogEntry('Operation completed successfully', 'success');
+                    
+                    // Hide loading indicator
+                    loadingIndicator.classList.add('hidden');
+                    
+                    // Reset progress after a delay
+                    setTimeout(function() {
+                        document.querySelector('.progress-fill').style.width = '0%';
+                        document.getElementById('statusLabel').textContent = 'Ready';
+                    }, 3000);
+                }, 2000);
+            });
+            
+            // File input change
+            inputFile.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    fileName.innerHTML = '<i class="fas fa-file"></i> ' + this.files[0].name;
+                    addLogEntry(`Selected file: ${this.files[0].name}`, 'info');
+                } else {
+                    fileName.innerHTML = '<i class="fas fa-file"></i> No file selected';
+                }
+            });
+            
+            // Helper function to add log entries
+            function addLogEntry(message, level = 'info') {
+                const logContainer = document.getElementById('logContainer');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry log-${level}`;
+                logEntry.textContent = `${timestamp} - ${level.toUpperCase()} - ${message}`;
+                
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+            
+            // Initial log entry
+            addLogEntry('Veeva Vault Manager Web initialized', 'info');
+        });
+    </script>
 </body>
 </html>
